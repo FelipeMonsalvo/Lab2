@@ -1,0 +1,12 @@
+/Users/felipe/Desktop/CPS 3330/Lab2/LibraryLab2/AIClassLibrary/bin/Debug/net10.0/AIClassLibrary.deps.json
+/Users/felipe/Desktop/CPS 3330/Lab2/LibraryLab2/AIClassLibrary/bin/Debug/net10.0/AIClassLibrary.dll
+/Users/felipe/Desktop/CPS 3330/Lab2/LibraryLab2/AIClassLibrary/bin/Debug/net10.0/AIClassLibrary.pdb
+/Users/felipe/Desktop/CPS 3330/Lab2/LibraryLab2/AIClassLibrary/obj/Debug/net10.0/AIClassLibrary.csproj.AssemblyReference.cache
+/Users/felipe/Desktop/CPS 3330/Lab2/LibraryLab2/AIClassLibrary/obj/Debug/net10.0/AIClassLibrary.GeneratedMSBuildEditorConfig.editorconfig
+/Users/felipe/Desktop/CPS 3330/Lab2/LibraryLab2/AIClassLibrary/obj/Debug/net10.0/AIClassLibrary.AssemblyInfoInputs.cache
+/Users/felipe/Desktop/CPS 3330/Lab2/LibraryLab2/AIClassLibrary/obj/Debug/net10.0/AIClassLibrary.AssemblyInfo.cs
+/Users/felipe/Desktop/CPS 3330/Lab2/LibraryLab2/AIClassLibrary/obj/Debug/net10.0/AIClassLibrary.csproj.CoreCompileInputs.cache
+/Users/felipe/Desktop/CPS 3330/Lab2/LibraryLab2/AIClassLibrary/obj/Debug/net10.0/AIClassLibrary.dll
+/Users/felipe/Desktop/CPS 3330/Lab2/LibraryLab2/AIClassLibrary/obj/Debug/net10.0/refint/AIClassLibrary.dll
+/Users/felipe/Desktop/CPS 3330/Lab2/LibraryLab2/AIClassLibrary/obj/Debug/net10.0/AIClassLibrary.pdb
+/Users/felipe/Desktop/CPS 3330/Lab2/LibraryLab2/AIClassLibrary/obj/Debug/net10.0/ref/AIClassLibrary.dll

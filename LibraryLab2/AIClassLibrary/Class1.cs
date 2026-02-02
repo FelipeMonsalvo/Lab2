@@ -3,6 +3,7 @@ using OpenAI;
 using OpenAI.Chat;
 using OpenAI.Assistants;
 using OpenAI.Embeddings;
+using DotNetEnv;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,10 +22,14 @@ namespace AIClassLibrary
         private const string ChatModel = "gpt-4o";
         private const string EmbeddingModel = "text-embedding-3-small";
 
-        public MyAILibrary(string? apiKey = null)
+        public MyAILibrary()
         {
-            _apiKey = "OPENAI_API_KEY";
-            // private const string ApiKey =
+            // Simple env (should be a bit more safe)
+            Env.Load();
+
+            _apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")
+                ?? throw new InvalidOperationException(
+                    "OPENAI_API_KEY not found. Make sure it exists in your .env file.");
         }
 
         // 1) Text Generation
@@ -35,15 +40,10 @@ namespace AIClassLibrary
             return completion.Content[0].Text;
         }
 
-        // 2) Vision (robust path resolution + correct MIME)
         public string AnalyzeImage(string imageNameOrPath, string prompt)
         {
             ChatClient client = new(model: ChatModel, apiKey: _apiKey);
             string imagePath = ResolveImagePath(imageNameOrPath);
-
-            Console.WriteLine($"[Vision] BaseDir: {AppContext.BaseDirectory}");
-            Console.WriteLine($"[Vision] CWD : {Directory.GetCurrentDirectory()}");
-            Console.WriteLine($"[Vision] Using : {imagePath}");
 
             string mimeType = Path.GetExtension(imagePath).ToLowerInvariant() switch
             {
@@ -71,7 +71,6 @@ namespace AIClassLibrary
 
         private static string ResolveImagePath(string imageNameOrPath)
         {
-            // If absolute path, use as-is (with extension fallback if missing)
             var candidates = new List<string>();
 
             if (Path.IsPathRooted(imageNameOrPath))
@@ -80,11 +79,9 @@ namespace AIClassLibrary
             }
             else
             {
-                // Try likely locations
-                candidates.Add(Path.Combine(AppContext.BaseDirectory, imageNameOrPath)); // bin/Debug/netX
-                candidates.Add(Path.Combine(Directory.GetCurrentDirectory(), imageNameOrPath)); // current working dir
+                candidates.Add(Path.Combine(AppContext.BaseDirectory, imageNameOrPath));
+                candidates.Add(Path.Combine(Directory.GetCurrentDirectory(), imageNameOrPath));
 
-                // Walk up from BaseDirectory (bin/Debug/netX -> Debug -> bin -> project root)
                 string dir = AppContext.BaseDirectory;
                 for (int i = 0; i < 6; i++)
                 {
@@ -93,31 +90,23 @@ namespace AIClassLibrary
                     dir = parent.FullName;
                     candidates.Add(Path.Combine(dir, imageNameOrPath));
                 }
-
-                // Common subfolders if you store assets
-                candidates.Add(Path.Combine(AppContext.BaseDirectory, "Assets", imageNameOrPath));
-                candidates.Add(Path.Combine(Directory.GetCurrentDirectory(), "Assets", imageNameOrPath));
             }
 
-            // If no extension provided, try common ones
-            bool hasExt = candidates.Any(p => Path.HasExtension(p));
-            string[] exts = hasExt ? new[] { "" } : new[] { ".png", ".jpg", ".jpeg", ".webp" };
-
-            var tried = new List<string>();
+            string[] exts = Path.HasExtension(imageNameOrPath)
+                ? new[] { "" }
+                : new[] { ".png", ".jpg", ".jpeg", ".webp" };
 
             foreach (var basePath in candidates)
             {
                 foreach (var ext in exts)
                 {
                     string p = basePath + ext;
-                    tried.Add(p);
                     if (File.Exists(p))
                         return p;
                 }
             }
 
-            throw new FileNotFoundException(
-                "Image not found. Tried:\n" + string.Join("\n", tried));
+            throw new FileNotFoundException("Image not found.");
         }
 
         // 3) Embeddings
@@ -125,10 +114,10 @@ namespace AIClassLibrary
         {
             EmbeddingClient client = new(model: EmbeddingModel, apiKey: _apiKey);
             OpenAIEmbedding embedding = client.GenerateEmbedding(text);
-            return embedding.ToFloats(); // ReadOnlyMemory<float>
+            return embedding.ToFloats();
         }
 
-        // 4) Assistant Agent (returns assistant text)
+        // 4) Assistant Agent
         public string RunAgent(string instructions, string userMessage)
         {
             AssistantClient client = new(apiKey: _apiKey);
@@ -144,7 +133,6 @@ namespace AIClassLibrary
 
             ThreadRun run = client.CreateThreadAndRun(assistant.Id, threadOptions);
 
-            // Poll until terminal
             do
             {
                 Thread.Sleep(TimeSpan.FromSeconds(1));
@@ -155,22 +143,13 @@ namespace AIClassLibrary
             if (run.Status != RunStatus.Completed)
                 return $"Run ended with status: {run.Status}";
 
-            // Fetch messages
-            var messages = client.GetMessages(
-                run.ThreadId,
-                new MessageCollectionOptions
-                {
-                    Order = MessageCollectionOrder.Ascending
-                });
+            var messages = client.GetMessages(run.ThreadId);
 
-            #pragma warning disable CS8600
             string lastAssistant = messages
                 .Where(m => m.Role == MessageRole.Assistant)
                 .SelectMany(m => m.Content)
                 .Select(c => c.Text)
                 .LastOrDefault(t => !string.IsNullOrWhiteSpace(t));
-            #pragma warning restore CS8600
-
 
             return lastAssistant ?? "(No assistant text returned.)";
         }
